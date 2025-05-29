@@ -23,7 +23,7 @@ module.exports = cds.service.impl(async function (srv) {
       })
 
       const token = tokenResponse.data.access_token
-
+        console.log('✅ OAuth2 token succesvol opgehaald:')
       // Stap 2: haal data op van iFlow API
       const apiResponse = await axios.get(process.env.IFLOW_URL, {
         headers: {
@@ -32,8 +32,8 @@ module.exports = cds.service.impl(async function (srv) {
         }
       })
 
-      const data = apiResponse.data
-
+        const data = apiResponse.data;
+        console.log('✅ Data succesvol opgehaald van de Integration Suite API:', data)
       return data.map(item => ({
         ATTRIBUTEEXTERNALID:     item.ATTRIBUTEEXTERNALID,
         PERSONEXTERNALID:        item.PERSONEXTERNALID,
