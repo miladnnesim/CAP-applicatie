@@ -1,13 +1,14 @@
-const cds = require('@sap/cds');
-const axios = require('axios');
-require('dotenv').config();
+const cds = require('@sap/cds')
+const axios = require('axios')
+require('dotenv').config()
 
-module.exports = cds.service.impl(async function () {
-  const { IFlowEntity } = this.entities;
+module.exports = cds.service.impl(async function (srv) {
+    const { IFlowData } = srv.entities
 
-  this.on('READ', IFlowEntity, async (req) => {
+    this.on('READ', IFlowData, async (req) => {
+
     try {
-      // Stap 1: Haal OAuth2 token op
+      // Stap 1: haal OAuth2 token op
       const tokenResponse = await axios.post(process.env.TOKEN_URL, null, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -19,21 +20,20 @@ module.exports = cds.service.impl(async function () {
         params: {
           grant_type: 'client_credentials'
         }
-      });
+      })
 
-      const token = tokenResponse.data.access_token;
+      const token = tokenResponse.data.access_token
 
-      // Stap 2: Haal data op van iFlow API
+      // Stap 2: haal data op van iFlow API
       const apiResponse = await axios.get(process.env.IFLOW_URL, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'
         }
-      });
+      })
 
-      const data = apiResponse.data;
+      const data = apiResponse.data
 
-      // Stap 3: Map de JSON naar jouw entity structuur
       return data.map(item => ({
         ATTRIBUTEEXTERNALID:     item.ATTRIBUTEEXTERNALID,
         PERSONEXTERNALID:        item.PERSONEXTERNALID,
@@ -45,11 +45,10 @@ module.exports = cds.service.impl(async function () {
         LASTMODIFIEDBY:          item.LASTMODIFIEDBY,
         LASTMODIFIEDAT:          new Date(item.LASTMODIFIEDAT),
         EXPECTEDRATING:          item.EXPECTEDRATING
-      }));
-
+      }))
     } catch (error) {
-      console.error('❌ API ERROR:', error.response?.data || error.message);
-      req.reject(500, 'Kon de data niet ophalen van de SAP Integration Suite API.');
+      console.error('❌ API ERROR:', error.response?.data || error.message)
+      req.reject(500, 'Kon de data niet ophalen van de Integration Suite API.')
     }
-  });
-});
+  })
+})
